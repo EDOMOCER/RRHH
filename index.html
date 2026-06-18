@@ -1210,11 +1210,10 @@ function renderAll(){
   updateDeptSelects();
   updateEmpSelects();
   populateAllEmpSelects();
-  setupFichas();
-  setupCartaVac();
-  // Note: setupInforme NOT called here to avoid resetting checkboxes
   renderDashboard();
   const activePage = document.querySelector('.page.active')?.id?.replace('page-','');
+  if(activePage==='fichas') setupFichas();
+  if(activePage==='cartavac') setupCartaVac();
   if(activePage==='empleados') renderEmpleados();
   if(activePage==='departamentos') renderDepartamentos();
   if(activePage==='vacaciones') renderVacaciones();
