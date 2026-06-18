@@ -2710,22 +2710,40 @@ async function generarChecklistDefault(){
 }
 
 async function toggleCheck(id,val){
-  // Save current selections before any redraw
-  const empSel = document.getElementById('filterCheckEmp')?.value;
-  const tipoSel = document.getElementById('filterCheckTipo')?.value;
-  await sb.from('checklists').update({completado:val,fecha_completado:val?todayStr():null}).eq('id',id);
-  // Update local DB without full reload
+  // Update local DB immediately
   const item = DB.checklists.find(c=>c.id===id);
   if(item){ item.completado=val; item.fecha_completado=val?todayStr():null; }
-  // Redraw and restore selections
-  renderChecklists();
-  setTimeout(()=>{
-    const empEl = document.getElementById('filterCheckEmp');
-    const tipoEl = document.getElementById('filterCheckTipo');
-    if(empEl && empSel) empEl.value = empSel;
-    if(tipoEl && tipoSel) tipoEl.value = tipoSel;
-    renderChecklists();
-  }, 50);
+  // Update DOM directly without re-rendering anything
+  const checkbox = document.querySelector(`input[onchange="toggleCheck(${id},this.checked)"]`);
+  if(checkbox){
+    const row = checkbox.parentElement;
+    const span = row.querySelector('span');
+    if(span) span.style.cssText = val ? 'flex:1;font-size:13.5px;text-decoration:line-through;color:var(--text3)' : 'flex:1;font-size:13.5px;';
+    // Update date display
+    let dateSpan = row.querySelector('.check-date');
+    if(val && !dateSpan){
+      dateSpan = document.createElement('span');
+      dateSpan.className = 'check-date';
+      dateSpan.style.cssText = 'font-size:11px;color:var(--text3)';
+      dateSpan.textContent = fmtDate(todayStr());
+      row.insertBefore(dateSpan, row.querySelector('button'));
+    } else if(!val && dateSpan){ dateSpan.remove(); }
+  }
+  // Update progress counter
+  const empId = parseInt(document.getElementById('filterCheckEmp')?.value||'0');
+  const tipo = document.getElementById('filterCheckTipo')?.value||'onboarding';
+  const list = DB.checklists.filter(c=>c.empleado_id===empId&&c.tipo===tipo);
+  const completados = list.filter(c=>c.completado).length;
+  const pct = list.length ? Math.round(completados/list.length*100) : 0;
+  const pctEl = document.querySelector('#checklistContent .panel div div:first-child div:last-child');
+  // Update percentage display
+  document.querySelectorAll('#checklistContent [style*="font-size:28px"]').forEach(el=>el.textContent=pct+'%');
+  document.querySelectorAll('#checklistContent .dias-bar').forEach(el=>el.style.width=pct+'%');
+  document.querySelectorAll('#checklistContent [style*="completados"]').forEach(el=>{
+    el.textContent = completados+' de '+list.length+' completados';
+  });
+  // Save to Supabase in background (don't await to avoid triggering realtime)
+  sb.from('checklists').update({completado:val,fecha_completado:val?todayStr():null}).eq('id',id);
 }
 async function deleteCheck(id){
   await sb.from('checklists').delete().eq('id',id);
