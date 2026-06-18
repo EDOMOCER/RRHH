@@ -1941,7 +1941,7 @@ function getInformeData() {
 }
 
 function buildInformeHTML(forPDF=false) {
-  const {emps, desde, hasta, incVac, incPerm, incHoras, incNomina, titulo, empId} = getInformeData();
+  const {emps, desde, hasta, incVac, incPerm, incHoras, incNomina, incBajas, incAcc, incRec, incForm, incCert, incEpi, incUni, incHex, titulo, empId} = getInformeData();
   const empresa = DB.config.empresa_nombre || 'EDO MOCER, SL';
   const logo = DB.config.empresa_logo || '';
   const fechaGen = new Date().toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'});
