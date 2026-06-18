@@ -49,7 +49,7 @@ main{flex:1;overflow-y:auto;padding:28px;}
 .page-header-left h2{font-size:22px;font-weight:700;letter-spacing:-0.5px;}
 .page-header-left p{font-size:13px;color:var(--text2);margin-top:4px;}
 /* STATS */
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px;}
+.stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:28px;}
 .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;}
 .stat-card .label{font-size:12px;color:var(--text2);margin-bottom:8px;}
 .stat-card .value{font-size:28px;font-weight:700;letter-spacing:-1px;line-height:1;}
@@ -255,6 +255,7 @@ tbody tr:hover{background:var(--surface2);}
     <div class="stat-card"><div class="label">De vacaciones</div><div class="value accent-warn" id="stat-vac">—</div><div class="sub">Este mes</div></div>
     <div class="stat-card"><div class="label">Pendientes</div><div class="value accent-danger" id="stat-pend">—</div><div class="sub">Por aprobar</div></div>
     <div class="stat-card"><div class="label">Descuentos nómina</div><div class="value accent-danger" id="stat-nomina">—</div><div class="sub">Pendientes año</div></div>
+    <div class="stat-card"><div class="label">Horas extra</div><div class="value accent-warn" id="stat-hex">—</div><div class="sub">Pendientes compensar</div></div>
   </div>
   <div class="two-col">
     <div class="panel"><h4>Actividad reciente</h4><div class="activity-list" id="activityList"><div class="empty-state"><div class="icon">📭</div><p>Sin actividad</p></div></div></div>
@@ -424,6 +425,11 @@ tbody tr:hover{background:var(--surface2);}
       </div>
       <div class="form-group full">
         <label>Secciones a incluir</label>
+        <div style="margin-bottom:10px;margin-top:6px;">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--accent);cursor:pointer;font-weight:600">
+            <input type="checkbox" id="infTodos" checked style="width:16px;height:16px;accent-color:var(--accent)" onchange="toggleTodasSecciones(this.checked)"> ✅ Marcar / Desmarcar todas
+          </label>
+        </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:6px;">
           <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer;font-weight:400"><input type="checkbox" id="infVac" checked style="width:16px;height:16px;accent-color:var(--accent)"> 🌴 Vacaciones</label>
           <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer;font-weight:400"><input type="checkbox" id="infPerm" checked style="width:16px;height:16px;accent-color:var(--accent)"> 📋 Permisos</label>
@@ -1812,6 +1818,8 @@ function renderDashboard(){
   document.getElementById('stat-vac').textContent=vacMes;
   document.getElementById('stat-pend').textContent=pending;
   document.getElementById('stat-nomina').textContent=nominaPend>0?`-${nominaPend.toFixed(0)}€`:'0€';
+  const hexPend = DB.horasExtra.filter(h=>h.compensacion==='Pendiente').reduce((s,h)=>s+(parseFloat(h.horas)||0),0);
+  document.getElementById('stat-hex').textContent = hexPend>0?`${hexPend.toFixed(1)}h`:'0h';
   // Activity: últimas vacaciones y permisos combinados
   const recent=[
     ...DB.vacaciones.slice(0,5).map(v=>({msg:`Vacaciones <strong>${getEmpName(v.empleado_id)}</strong> — ${fmtDate(v.inicio)} → ${fmtDate(v.fin)}`,color:v.estado==='Aprobado'?'var(--accent2)':v.estado==='Rechazado'?'var(--danger)':'var(--warn)',time:v.created_at?new Date(v.created_at).toLocaleDateString('es-ES'):''})),
@@ -1896,6 +1904,13 @@ function renderAdjList(empId) {
 }
 
 // ========== INFORMES PDF ==========
+function toggleTodasSecciones(val) {
+  ['infVac','infPerm','infHoras','infNomina','infBajas','infAcc','infRec','infForm','infCert','infEpi','infUni','infHex'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.checked = val;
+  });
+}
+
 function setupInforme() {
   const opts = '<option value="todos">Todos los empleados</option>' + DB.empleados.map(e=>`<option value="${e.id}">${e.nombre} ${e.apellidos}</option>`).join('');
   document.getElementById('infEmp').innerHTML = opts;
