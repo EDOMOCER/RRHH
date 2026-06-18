@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
+<!-- v2.1 --><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>RRHH — EDO MOCER, SL</title>
 <link rel="manifest" href="/manifest.json">
@@ -2141,7 +2141,7 @@ function generarPDF() {
   const filename = `${empresa} — ${titulo}`.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ,._-]/g,'_');
 
   const printWin = window.open('','_blank');
-  printWin.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${filename}</title>
+  printWin.document.write(`<!DOCTYPE html><html><head><!-- v2.1 --><meta charset="UTF-8"><title>${filename}</title>
   <style>
     body{margin:0;padding:24px;font-family:Arial,sans-serif;background:#fff;}
     @media print{body{padding:0;} @page{margin:15mm;size:A4;}}
@@ -3078,7 +3078,7 @@ function imprimirFicha() {
   const ficha = document.getElementById('fichaImprimible');
   if(!ficha){renderFicha();setTimeout(imprimirFicha,300);return;}
   const win = window.open('','_blank');
-  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Ficha empleado</title>
+  win.document.write(`<!DOCTYPE html><html><head><!-- v2.1 --><meta charset="UTF-8"><title>Ficha empleado</title>
   <style>body{margin:20px;font-family:Arial,sans-serif;} @media print{body{margin:0;}@page{margin:10mm;size:A4;}}</style>
   </head><body>${ficha.outerHTML}<script>window.onload=()=>setTimeout(()=>window.print(),400);<\/script></body></html>`);
   win.document.close();
@@ -3156,7 +3156,7 @@ function imprimirCarta() {
   if(!html) return;
   const win = window.open('','_blank');
   const e = DB.empleados.find(e=>e.id===parseInt(document.getElementById('cartaEmpSel').value));
-  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Carta vacaciones ${e?.nombre||''}</title>
+  win.document.write(`<!DOCTYPE html><html><head><!-- v2.1 --><meta charset="UTF-8"><title>Carta vacaciones ${e?.nombre||''}</title>
   <style>body{margin:20px;font-family:Arial,sans-serif;} @media print{body{margin:0;}@page{margin:15mm;size:A4;}}</style>
   </head><body>${html}<script>window.onload=()=>setTimeout(()=>window.print(),400);<\/script></body></html>`);
   win.document.close();
