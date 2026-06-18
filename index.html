@@ -424,11 +424,19 @@ tbody tr:hover{background:var(--surface2);}
       </div>
       <div class="form-group full">
         <label>Secciones a incluir</label>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:6px;">
           <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer;font-weight:400"><input type="checkbox" id="infVac" checked style="width:16px;height:16px;accent-color:var(--accent)"> 🌴 Vacaciones</label>
           <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer;font-weight:400"><input type="checkbox" id="infPerm" checked style="width:16px;height:16px;accent-color:var(--accent)"> 📋 Permisos</label>
           <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer;font-weight:400"><input type="checkbox" id="infHoras" checked style="width:16px;height:16px;accent-color:var(--accent)"> ⏱️ Bolsa de horas</label>
           <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer;font-weight:400"><input type="checkbox" id="infNomina" checked style="width:16px;height:16px;accent-color:var(--accent)"> 💰 Anotaciones nómina</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer;font-weight:400"><input type="checkbox" id="infBajas" checked style="width:16px;height:16px;accent-color:var(--accent)"> 🏥 Bajas IT</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer;font-weight:400"><input type="checkbox" id="infAcc" checked style="width:16px;height:16px;accent-color:var(--accent)"> ⚠️ Accidentes</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer;font-weight:400"><input type="checkbox" id="infRec" checked style="width:16px;height:16px;accent-color:var(--accent)"> 🩺 Reconocimientos</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer;font-weight:400"><input type="checkbox" id="infForm" checked style="width:16px;height:16px;accent-color:var(--accent)"> 📚 Formaciones</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer;font-weight:400"><input type="checkbox" id="infCert" checked style="width:16px;height:16px;accent-color:var(--accent)"> 🎓 Certificaciones</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer;font-weight:400"><input type="checkbox" id="infEpi" checked style="width:16px;height:16px;accent-color:var(--accent)"> 🦺 EPIs</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer;font-weight:400"><input type="checkbox" id="infUni" checked style="width:16px;height:16px;accent-color:var(--accent)"> 👔 Uniformes</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer;font-weight:400"><input type="checkbox" id="infHex" checked style="width:16px;height:16px;accent-color:var(--accent)"> ⏰ Horas extra</label>
         </div>
       </div>
       <div class="form-group full">
@@ -1921,7 +1929,15 @@ function getInformeData() {
     });
   }
 
-  return {emps, desde, hasta, incVac, incPerm, incHoras, incNomina, titulo, empId};
+  const incBajas = document.getElementById('infBajas')?.checked||false;
+  const incAcc = document.getElementById('infAcc')?.checked||false;
+  const incRec = document.getElementById('infRec')?.checked||false;
+  const incForm = document.getElementById('infForm')?.checked||false;
+  const incCert = document.getElementById('infCert')?.checked||false;
+  const incEpi = document.getElementById('infEpi')?.checked||false;
+  const incUni = document.getElementById('infUni')?.checked||false;
+  const incHex = document.getElementById('infHex')?.checked||false;
+  return {emps, desde, hasta, incVac, incPerm, incHoras, incNomina, incBajas, incAcc, incRec, incForm, incCert, incEpi, incUni, incHex, titulo, empId};
 }
 
 function buildInformeHTML(forPDF=false) {
@@ -2014,6 +2030,64 @@ function buildInformeHTML(forPDF=false) {
         noms.length ? null : 'Sin anotaciones en este período', borderCol, mutedCol, extra);
     }
 
+    // Bajas
+    if(incBajas) {
+      const bajas = DB.bajas.filter(b=>b.empleado_id===emp.id&&normFecha(b.fecha_inicio)>=desde&&normFecha(b.fecha_inicio)<=hasta);
+      html += buildTable('🏥 Bajas IT', ['Inicio','Fin','Tipo','Motivo'],
+        bajas.map(b=>[fmtDate(b.fecha_inicio), b.fecha_fin?fmtDate(b.fecha_fin):'En curso', b.tipo||'—', b.motivo||'—']),
+        bajas.length?null:'Sin bajas en este período', borderCol, mutedCol);
+    }
+    // Accidentes
+    if(incAcc) {
+      const accs = DB.accidentes.filter(a=>a.empleado_id===emp.id&&normFecha(a.fecha)>=desde&&normFecha(a.fecha)<=hasta);
+      html += buildTable('⚠️ Accidentes', ['Fecha','Descripción','Gravedad','Días baja','Parte'],
+        accs.map(a=>[fmtDate(a.fecha), a.descripcion||'—', a.gravedad||'—', a.dias_baja||0, a.parte_realizado?'Sí':'No']),
+        accs.length?null:'Sin accidentes en este período', borderCol, mutedCol);
+    }
+    // Reconocimientos
+    if(incRec) {
+      const recs = DB.reconocimientos.filter(r=>r.empleado_id===emp.id&&normFecha(r.fecha)>=desde&&normFecha(r.fecha)<=hasta);
+      html += buildTable('🩺 Reconocimientos médicos', ['Fecha','Tipo','Resultado','Vencimiento'],
+        recs.map(r=>[fmtDate(r.fecha), r.tipo||'—', r.resultado||'—', fmtDate(r.fecha_vencimiento)]),
+        recs.length?null:'Sin reconocimientos en este período', borderCol, mutedCol);
+    }
+    // Formaciones
+    if(incForm) {
+      const forms = DB.formaciones.filter(f=>f.empleado_id===emp.id&&normFecha(f.fecha)>=desde&&normFecha(f.fecha)<=hasta);
+      html += buildTable('📚 Formaciones', ['Nombre','Tipo','Fecha','Horas','Cert.'],
+        forms.map(f=>[f.nombre||'—', f.tipo||'—', fmtDate(f.fecha), f.horas?f.horas+'h':'—', f.certificado?'Sí':'No']),
+        forms.length?null:'Sin formaciones en este período', borderCol, mutedCol);
+    }
+    // Certificaciones
+    if(incCert) {
+      const certs = DB.certificaciones.filter(c=>c.empleado_id===emp.id);
+      html += buildTable('🎓 Certificaciones', ['Nombre','Tipo','Número','Vencimiento'],
+        certs.map(c=>[c.nombre||'—', c.tipo||'—', c.numero||'—', fmtDate(c.fecha_vencimiento)]),
+        certs.length?null:'Sin certificaciones registradas', borderCol, mutedCol);
+    }
+    // EPIs
+    if(incEpi) {
+      const epis = DB.epis.filter(ep=>ep.empleado_id===emp.id&&normFecha(ep.fecha)>=desde&&normFecha(ep.fecha)<=hasta);
+      html += buildTable('🦺 EPIs', ['Artículo','Talla','Cantidad','Fecha','Estado'],
+        epis.map(ep=>[ep.articulo||'—', ep.talla||'—', ep.cantidad||1, fmtDate(ep.fecha), ep.estado||'—']),
+        epis.length?null:'Sin EPIs en este período', borderCol, mutedCol);
+    }
+    // Uniformes
+    if(incUni) {
+      const unis = DB.uniformes.filter(u=>u.empleado_id===emp.id&&normFecha(u.fecha)>=desde&&normFecha(u.fecha)<=hasta);
+      html += buildTable('👔 Uniformes', ['Artículo','Talla','Estado','Entregado','Devuelto'],
+        unis.map(u=>[u.articulo||'—', u.talla||'—', u.estado||'—', fmtDate(u.fecha), u.devuelto?fmtDate(u.fecha_devolucion):'No']),
+        unis.length?null:'Sin uniformes en este período', borderCol, mutedCol);
+    }
+    // Horas extra
+    if(incHex) {
+      const hexs = DB.horasExtra.filter(h=>h.empleado_id===emp.id&&normFecha(h.fecha)>=desde&&normFecha(h.fecha)<=hasta);
+      const totalHex = hexs.reduce((s,h)=>s+(parseFloat(h.horas)||0),0);
+      let extraHex = hexs.length?`<div style="margin-top:8px;font-size:12px;color:${mutedCol}">Total horas extra: <strong style="color:${accentCol}">${totalHex.toFixed(2)}h</strong></div>`:'';
+      html += buildTable('⏰ Horas extra', ['Fecha','Horas','Motivo','Compensación'],
+        hexs.map(h=>[fmtDate(h.fecha), parseFloat(h.horas).toFixed(2)+'h', h.motivo||'—', h.compensacion||'—']),
+        hexs.length?null:'Sin horas extra en este período', borderCol, mutedCol, extraHex);
+    }
     // Adjuntos del empleado
     const adjs = adjuntosDB[emp.id] || [];
     if(adjs.length) {
@@ -2059,10 +2133,8 @@ function previsualizarInforme() {
 }
 
 function generarPDF() {
-  if(!document.getElementById('infVac').checked && !document.getElementById('infPerm').checked &&
-     !document.getElementById('infHoras').checked && !document.getElementById('infNomina').checked) {
-    toast('Selecciona al menos una sección','error'); return;
-  }
+  const anyChecked = ['infVac','infPerm','infHoras','infNomina','infBajas','infAcc','infRec','infForm','infCert','infEpi','infUni','infHex'].some(id=>document.getElementById(id)?.checked);
+  if(!anyChecked) { toast('Selecciona al menos una sección','error'); return; }
   const htmlContent = buildInformeHTML(true);
   const empresa = DB.config.empresa_nombre || 'RRHH';
   const titulo = document.getElementById('infTitulo').value.trim() || 'informe';
