@@ -1212,6 +1212,7 @@ function renderAll(){
   populateAllEmpSelects();
   setupFichas();
   setupCartaVac();
+  // Note: setupInforme NOT called here to avoid resetting checkboxes
   renderDashboard();
   const activePage = document.querySelector('.page.active')?.id?.replace('page-','');
   if(activePage==='empleados') renderEmpleados();
@@ -1932,6 +1933,14 @@ function getInformeData() {
   const titulo = document.getElementById('infTitulo').value.trim();
 
   let emps = empId==='todos' ? DB.empleados : DB.empleados.filter(e=>e.id==empId);
+  const incBajas2 = document.getElementById('infBajas')?.checked||false;
+  const incAcc2 = document.getElementById('infAcc')?.checked||false;
+  const incRec2 = document.getElementById('infRec')?.checked||false;
+  const incForm2 = document.getElementById('infForm')?.checked||false;
+  const incCert2 = document.getElementById('infCert')?.checked||false;
+  const incEpi2 = document.getElementById('infEpi')?.checked||false;
+  const incUni2 = document.getElementById('infUni')?.checked||false;
+  const incHex2 = document.getElementById('infHex')?.checked||false;
   
   // Si es "todos", filtrar solo empleados que tengan datos en el período
   if(empId==='todos'){
@@ -1940,7 +1949,15 @@ function getInformeData() {
       const tienePerm = incPerm && DB.permisos.some(p=>p.empleado_id===e.id&&(p.fecha||'')>=desde&&(p.fecha||'')<=hasta);
       const tieneHoras = incHoras && DB.horas.some(h=>h.empleado_id===e.id&&(h.fecha||'')>=desde&&(h.fecha||'')<=hasta);
       const tieneNomina = incNomina && DB.nomina.some(n=>n.empleado_id===e.id&&(n.fecha||'')>=desde&&(n.fecha||'')<=hasta);
-      return tieneVac||tienePerm||tieneHoras||tieneNomina;
+      const tieneBajas2 = incBajas2 && DB.bajas.some(b=>b.empleado_id===e.id&&normFecha(b.fecha_inicio)>=desde&&normFecha(b.fecha_inicio)<=hasta);
+      const tieneAcc2 = incAcc2 && DB.accidentes.some(a=>a.empleado_id===e.id&&normFecha(a.fecha)>=desde&&normFecha(a.fecha)<=hasta);
+      const tieneRec2 = incRec2 && DB.reconocimientos.some(r=>r.empleado_id===e.id&&normFecha(r.fecha)>=desde&&normFecha(r.fecha)<=hasta);
+      const tieneForm2 = incForm2 && DB.formaciones.some(f=>f.empleado_id===e.id&&normFecha(f.fecha)>=desde&&normFecha(f.fecha)<=hasta);
+      const tieneCert2 = incCert2 && DB.certificaciones.some(c=>c.empleado_id===e.id);
+      const tieneEpi2 = incEpi2 && DB.epis.some(ep=>ep.empleado_id===e.id&&normFecha(ep.fecha)>=desde&&normFecha(ep.fecha)<=hasta);
+      const tieneUni2 = incUni2 && DB.uniformes.some(u=>u.empleado_id===e.id&&normFecha(u.fecha)>=desde&&normFecha(u.fecha)<=hasta);
+      const tieneHex2 = incHex2 && DB.horasExtra.some(h=>h.empleado_id===e.id);
+      return tieneVac||tienePerm||tieneHoras||tieneNomina||tieneBajas2||tieneAcc2||tieneRec2||tieneForm2||tieneCert2||tieneEpi2||tieneUni2||tieneHex2;
     });
   }
 
@@ -2096,7 +2113,7 @@ function buildInformeHTML(forPDF=false) {
     }
     // Horas extra
     if(incHex) {
-      const hexs = DB.horasExtra.filter(h=>h.empleado_id===emp.id&&normFecha(h.fecha)>=desde&&normFecha(h.fecha)<=hasta);
+      const hexs = DB.horasExtra.filter(h=>h.empleado_id===emp.id);
       const totalHex = hexs.reduce((s,h)=>s+(parseFloat(h.horas)||0),0);
       let extraHex = hexs.length?`<div style="margin-top:8px;font-size:12px;color:${mutedCol}">Total horas extra: <strong style="color:${accentCol}">${totalHex.toFixed(2)}h</strong></div>`:'';
       html += buildTable('⏰ Horas extra', ['Fecha','Horas','Motivo','Compensación'],
