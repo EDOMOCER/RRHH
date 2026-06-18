@@ -1240,7 +1240,12 @@ function renderAll(){
 // ========== REALTIME ==========
 function setupRealtime(){
   sb.channel('rrhh-changes')
-    .on('postgres_changes',{event:'*',schema:'public'},(payload)=>{ loadAll(); })
+    .on('postgres_changes',{event:'*',schema:'public'},(payload)=>{
+      // No recargar si estamos en informes, fichas o carta para no resetear formularios
+      const activePage = document.querySelector('.page.active')?.id?.replace('page-','');
+      if(activePage==='informes' || activePage==='fichas' || activePage==='cartavac' || activePage==='checklists') return;
+      loadAll();
+    })
     .subscribe();
 }
 
