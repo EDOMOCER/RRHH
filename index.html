@@ -2377,9 +2377,16 @@ function populateAllEmpSelects(){
   const opts = DB.empleados.map(e=>`<option value="${e.id}">${e.nombre} ${e.apellidos}</option>`).join('');
   const ids = ['bajaEmp','accEmp','recEmp','formEmp','certEmp','epiEmp','uniEmp','hexEmp'];
   ids.forEach(id=>{ const el=document.getElementById(id); if(el) el.innerHTML=opts||'<option>Sin empleados</option>'; });
-  const fids = ['filterBajasEmp','filterAccEmp','filterRecEmp','filterFormEmp','filterCertEmp','filterEpiEmp','filterUniEmp','filterHexEmp','filterCheckEmp'];
+  const fids = ['filterBajasEmp','filterAccEmp','filterRecEmp','filterFormEmp','filterCertEmp','filterEpiEmp','filterUniEmp','filterHexEmp'];
   const fopts = '<option value="">Todos</option>'+opts;
   fids.forEach(id=>{ const el=document.getElementById(id); if(el) el.innerHTML=fopts; });
+  // filterCheckEmp: preserve current value
+  const checkEl = document.getElementById('filterCheckEmp');
+  if(checkEl){
+    const currentVal = checkEl.value;
+    checkEl.innerHTML = '<option value="">Selecciona empleado…</option>'+opts;
+    if(currentVal) checkEl.value = currentVal;
+  }
 }
 
 function vencimientoBadge(fecha){
@@ -2703,10 +2710,28 @@ async function generarChecklistDefault(){
 }
 
 async function toggleCheck(id,val){
+  // Save current selections before any redraw
+  const empSel = document.getElementById('filterCheckEmp')?.value;
+  const tipoSel = document.getElementById('filterCheckTipo')?.value;
   await sb.from('checklists').update({completado:val,fecha_completado:val?todayStr():null}).eq('id',id);
-  await loadAll();
+  // Update local DB without full reload
+  const item = DB.checklists.find(c=>c.id===id);
+  if(item){ item.completado=val; item.fecha_completado=val?todayStr():null; }
+  // Redraw and restore selections
+  renderChecklists();
+  setTimeout(()=>{
+    const empEl = document.getElementById('filterCheckEmp');
+    const tipoEl = document.getElementById('filterCheckTipo');
+    if(empEl && empSel) empEl.value = empSel;
+    if(tipoEl && tipoSel) tipoEl.value = tipoSel;
+    renderChecklists();
+  }, 50);
 }
-async function deleteCheck(id){await sb.from('checklists').delete().eq('id',id);await loadAll();}
+async function deleteCheck(id){
+  await sb.from('checklists').delete().eq('id',id);
+  DB.checklists = DB.checklists.filter(c=>c.id!==id);
+  renderChecklists();
+}
 async function addCheckItem(){
   const empId=parseInt(document.getElementById('filterCheckEmp').value);
   const tipo=document.getElementById('filterCheckTipo').value;
