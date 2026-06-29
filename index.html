@@ -1306,11 +1306,7 @@ function showPage(id,btn){
   document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   if(btn)btn.classList.add('active');
-  setTimeout(()=>{
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
-    document.querySelector('html').scrollTop = 0;
-  }, 10);
+  setTimeout(()=>{ window.scrollTo({top:0,behavior:'instant'}); }, 50);
   updateYearLabels();
   if(id==='empleados') renderEmpleados();
   if(id==='departamentos') renderDepartamentos();
