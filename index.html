@@ -1307,8 +1307,9 @@ function showPage(id,btn){
   document.getElementById('page-'+id).classList.add('active');
   if(btn)btn.classList.add('active');
   setTimeout(()=>{
-    const m = document.getElementById('mainContent');
-    if(m) m.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    document.querySelector('html').scrollTop = 0;
   }, 10);
   updateYearLabels();
   if(id==='empleados') renderEmpleados();
